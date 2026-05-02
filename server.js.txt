@@ -1,0 +1,207 @@
+const express = require("express");
+const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+
+// 📊 DONNÉES
+let eleves = [];
+let cours = [];
+
+const ADMIN_PASSWORD = "1234";
+
+
+// 🎨 STYLE GLOBAL
+const style = `
+<style>
+  body{
+    font-family: Arial;
+    background:#f4f6f9;
+    margin:0;
+    padding:0;
+    text-align:center;
+  }
+
+  h1{
+    background:#2c3e50;
+    color:white;
+    padding:15px;
+    margin:0;
+  }
+
+  form{
+    background:white;
+    padding:20px;
+    margin:20px auto;
+    width:320px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+  }
+
+  input, select{
+    width:90%;
+    padding:10px;
+    margin:8px 0;
+  }
+
+  button{
+    background:#27ae60;
+    color:white;
+    padding:10px;
+    border:none;
+    width:95%;
+    cursor:pointer;
+    border-radius:5px;
+  }
+
+  button:hover{
+    background:#219150;
+  }
+
+  a{
+    display:block;
+    margin:10px;
+    color:#2980b9;
+    text-decoration:none;
+  }
+
+  ul{
+    list-style:none;
+    padding:0;
+  }
+
+  li{
+    background:white;
+    margin:10px auto;
+    padding:10px;
+    width:320px;
+    border-radius:8px;
+    box-shadow:0 0 5px rgba(0,0,0,0.1);
+  }
+</style>
+`;
+
+
+// 🏠 ACCUEIL
+app.get("/", (req, res) => {
+  res.send(`
+    ${style}
+    <h1>🏫 École en ligne CP1 → Terminale</h1>
+
+    <form method="POST" action="/inscrire">
+      <input name="nom" placeholder="Nom complet" required>
+
+      <select name="classe">
+        <option>CP1</option><option>CP2</option>
+        <option>CE1</option><option>CE2</option>
+        <option>CM1</option><option>CM2</option>
+        <option>6e</option><option>5e</option>
+        <option>4e</option><option>3e</option>
+        <option>2nde</option><option>1ère</option>
+        <option>Terminale</option>
+      </select>
+
+      <input name="tel" placeholder="Téléphone parent" required>
+
+      <button>Inscrire</button>
+    </form>
+
+    <a href="/admin">👨‍🏫 Admin</a>
+    <a href="/cours">📚 Cours & Examens</a>
+    <a href="/paiement">💰 Paiement</a>
+  `);
+});
+
+
+// ➕ INSCRIPTION
+app.post("/inscrire", (req, res) => {
+  eleves.push(req.body);
+  res.send(`${style}<h1>✅ Inscription réussie</h1><a href="/">Retour</a>`);
+});
+
+
+// 🔐 ADMIN PAGE
+app.get("/admin", (req, res) => {
+  res.send(`
+    ${style}
+    <h1>🔐 Admin</h1>
+
+    <form method="POST" action="/admin-login">
+      <input type="password" name="password" placeholder="Mot de passe" required>
+      <button>Entrer</button>
+    </form>
+  `);
+});
+
+
+// 🔐 ADMIN LOGIN
+app.post("/admin-login", (req, res) => {
+  if (req.body.password === ADMIN_PASSWORD) {
+
+    let liste = eleves.map((e, i) =>
+      `<li>${i + 1}. ${e.nom} - ${e.classe} - ${e.tel}</li>`
+    ).join("");
+
+    res.send(`
+      ${style}
+      <h1>📋 ADMIN PANEL</h1>
+      <ul>${liste}</ul>
+      <a href="/">🏠 Retour</a>
+    `);
+
+  } else {
+    res.send(`${style}<h1>❌ Mot de passe incorrect</h1><a href="/admin">Réessayer</a>`);
+  }
+});
+
+
+// 📚 COURS
+app.get("/cours", (req, res) => {
+
+  let liste = cours.map(c => `<li>${c}</li>`).join("");
+
+  res.send(`
+    ${style}
+    <h1>📚 Cours & Examens</h1>
+
+    <form method="POST" action="/ajouter-cours">
+      <input name="titre" placeholder="Cours / Examen" required>
+      <button>Ajouter</button>
+    </form>
+
+    <ul>${liste}</ul>
+
+    <a href="/">Retour</a>
+  `);
+});
+
+
+// ➕ AJOUT COURS
+app.post("/ajouter-cours", (req, res) => {
+  cours.push(req.body.titre);
+  res.send(`${style}<h1>✅ Ajouté</h1><a href="/cours">Retour</a>`);
+});
+
+
+// 💰 PAIEMENT
+app.get("/paiement", (req, res) => {
+  res.send(`
+    ${style}
+    <h1>💰 Paiement scolaire</h1>
+
+    <ul>
+      <li>📱 Flooz : +228 97 05 34 43</li>
+      <li>📱 Yas : +228 90 96 91 59</li>
+      <li>💳 Carte bancaire : bientôt</li>
+    </ul>
+
+    <p>⚠️ Envoyez la preuve de paiement à l'école.</p>
+
+    <a href="/">Retour</a>
+  `);
+});
+
+
+// 🚀 SERVEUR
+app.listen(3000, () => {
+  console.log("🏫 Serveur lancé sur http://localhost:3000");
+});
